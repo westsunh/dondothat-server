@@ -91,9 +91,26 @@
 
 Spring Legacy 환경에서 Codef API를 연동하여 사용자 소비내역을 호출했습니다.
 
-- **기능**: AccessToken 관리, ConnectedID 생성, 소비 내역 조회 등 핵심 API 연동 로직 구현
+**[연동 흐름]**
+<p align="center">
+  <img src="https://download.codef.io/codef/dev-guide/data-flow.png" width="500"/>
+</p>
+
+<br>
+
+| 단계 | 내용 |
+|---|---|
+| AccessToken 세팅 | DB에 저장, 만료 시 자동 재발급 |
+| ConnectedId 세팅 | 민감 정보 대신 사용하는 안전한 식별자 |
+| RSA 암호화 | publicKey로 bank_pw 암호화 후 전달 |
+| URL Encoding | UTF-8 인코딩 후 API 요청 |
+| 데이터 수신 | Organization에서 계정정보 조회 후 응답 |
+
+**[구현 내용]**
+
 - **Access Token 관리**: DB에 저장하고 만료 시 자동 재발급하는 구조 설계 → 불필요한 API 호출 감소
 - **Connected ID 기반 호출**: 민감 정보를 직접 사용하지 않는 안전한 API 호출 구조 구현
+- **핵심 로직**: AccessToken 관리, ConnectedID 생성, 소비 내역 조회 등 핵심 API 연동 로직 직접 구현
 
 ---
 
