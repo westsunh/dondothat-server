@@ -31,6 +31,10 @@ java {
 }
 
 dependencies {
+    // Spring Batch Core
+    implementation 'org.springframework.batch:spring-batch-core:4.3.10'
+    implementation 'org.springframework.batch:spring-batch-infrastructure:4.3.10'
+    
     // Spring Framework
     implementation("org.springframework:spring-context:${springVersion}")
             { exclude group: 'commons-logging', module: 'commons-logging' }
