@@ -12,6 +12,7 @@ CREATE TABLE `user` (
     `nickname` VARCHAR(255) NOT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `asset_connected` BOOLEAN NOT NULL DEFAULT FALSE,  -- [추가] 자산 연동 여부
     PRIMARY KEY (`user_id`)
 );
 
@@ -22,6 +23,10 @@ CREATE TABLE `category` (
     `icon_url` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`category_id`)
 );
+
+-- [추가] 기본 카테고리 데이터 (미분류 지출용)
+INSERT INTO `category` (`category_id`, `name`, `icon_url`)
+VALUES (14, '미지정', '');
 
 -- 챌린지 테이블
 CREATE TABLE `challenge` (
@@ -63,7 +68,7 @@ CREATE TABLE `chat_message` (
     FOREIGN KEY (`challenge_id`) REFERENCES `challenge`(`challenge_id`) ON DELETE CASCADE
 );
 
--- expenditure 테이블 추가 (테스트에서 필요)
+-- 지출 테이블
 CREATE TABLE `expenditure` (
     `expenditure_id` BIGINT NOT NULL AUTO_INCREMENT,
     `user_id` BIGINT NOT NULL,
@@ -71,15 +76,18 @@ CREATE TABLE `expenditure` (
     `asset_id` BIGINT NOT NULL,
     `amount` BIGINT NOT NULL,
     `description` VARCHAR(255),
-    `expenditure_date` TIMESTAMP NOT NULL,
+    `expenditure_date` DATETIME NOT NULL,              -- TIMESTAMP → DATETIME (배치 처리 정밀도)
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `user_modified` BOOLEAN NOT NULL DEFAULT FALSE,    -- [추가] 사용자 수동 수정 여부
+    `deleted_at` TIMESTAMP NULL,                       -- [추가] 소프트 삭제용
+    `codef_transaction_id` VARCHAR(255) NULL,
     PRIMARY KEY (`expenditure_id`),
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE,
     FOREIGN KEY (`category_id`) REFERENCES `category`(`category_id`) ON DELETE CASCADE
 );
 
--- user_asset 테이블 추가
+-- user_asset 테이블
 CREATE TABLE `user_asset` (
     `asset_id` BIGINT NOT NULL AUTO_INCREMENT,
     `user_id` BIGINT NOT NULL,
@@ -94,3 +102,8 @@ CREATE TABLE `user_asset` (
     PRIMARY KEY (`asset_id`),
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
 );
+
+-- 배치 Processor 조회 성능 향상을 위한 인덱스
+CREATE INDEX idx_user_asset_connected_id ON `user_asset` (`connected_id`);
+-- 중복 방지용 인덱스
+CREATE UNIQUE INDEX uk_codef_txn_id ON expenditure (codef_transaction_id);
